@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0-focal as build
 
 WORKDIR /src
 
-COPY BuggyBits.csproj .
+COPY ./BuggyBits/BuggyBits.csproj .
 RUN dotnet restore
 
 COPY . .
