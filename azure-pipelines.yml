@@ -21,10 +21,28 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build and push stage
+  displayName: Print params, test, build and push stage
   jobs:
+  # print all the parameters
+  - job: Print_Parameters
+    displayName: Print Parameters
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo 'Print all parameters: '
+          echo 'Service connection: ' $(dockerRegistryServiceConnection)
+          echo 'Image repository: ' $(imageRepository)
+          echo 'Azure container registry: ' $(containerRegistry)
+          echo 'Dockerfile path: ' $(dockerfilePath)
+          echo 'Build ID: ' $(tag)
+          echo 'VM image name: ' $(vmImageName)
   - job: Build
     displayName: Build
+    dependsOn: Print_Parameters
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -37,3 +55,12 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+          latest          
+
+  # Each build must finish with artifact task 
+  # because output will be used in Release Pipeline
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(System.DefaultWorkingDirectory)/BuggyBits/Deployments/Kubernetes/'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
